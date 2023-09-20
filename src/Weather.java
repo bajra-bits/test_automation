@@ -2,44 +2,54 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
-import java.util.function.DoubleToIntFunction;
+import java.util.List;
 
-public class Weather {
-    public static void main(String[] args) throws InterruptedException, Exception {
-        WebDriver driver = new ChromeDriver();
-        try {
-            driver.manage().window().maximize();
-            driver.get("https://www.google.com");
+public abstract class Weather extends Base{
+    String url;
+    WebElement currentTemp;
+    WebElement tempUnit;
+    WebElement localTime;
+    WebElement location;
 
-            WebElement searchField = driver.findElement(By.xpath("//*[@jsname='yZiJbe']"));
-            searchField.sendKeys("temperature near me");
-            searchField.sendKeys(Keys.ENTER);
+    public Weather(WebDriver driver, String url) {
+        super(driver);
+        this.url = url;
+    }
 
-            WebElement translate = driver.findElement(By.xpath("//*[text()='Change to English']"));
-            translate.click();
+    public void search(String searchText) {
+        WebElement searchField = this.driver.findElement(By.xpath("//*[@jsname='yZiJbe']"));
+        if(!searchField.getText().isEmpty()) {
+            searchField.clear();
+        }
+        searchField.sendKeys(searchText);
+        searchField.sendKeys(Keys.ENTER);
+    }
 
-            WebElement currentTemp = driver.findElement(By.xpath("//*[@id='wob_tm']"));
-            WebElement tempUnit = driver.findElement(By.xpath("//*[@aria-label='°Celsius']"));
-            WebElement localTime = driver.findElement(By.xpath("//*[@id='wob_dts']"));
-            WebElement location = driver.findElement(By.xpath("//*[@class='BBwThe']"));
 
+    public void find(){
+        try{
+            this.search(this.url);
+            List<WebElement> elemList = this.driver.findElements(By.xpath("//*[text()='Change to English']"));
+            if(elemList.size() > 0) {
+                elemList.get(0).click();
+            }
 
-            System.out.println(tempUnit);
-            System.out.println("Location:" + location.getText());
-            System.out.println("Current Time: " + localTime.getText());
-            System.out.println("Temperature atm: " + currentTemp.getText() + tempUnit.getText());
+            /* assign web elements */
+            this.currentTemp = this.driver.findElement(By.xpath("//*[@id='wob_tm']"));
+            this.tempUnit = this.driver.findElement(By.xpath("//*[@aria-label='°Celsius']"));
+            this.localTime = this.driver.findElement(By.xpath("//*[@id='wob_dts']"));
+            this.location = this.driver.findElement(By.xpath("//*[@class='BBwThe']"));
 
-//            Thread.sleep(500);
-//            driver.close();
-        } catch(Exception e) {
-            System.out.println("Something went wrong!");
+        }catch(Exception e) {
             System.out.println(e.getStackTrace());
         }
 
+    }
 
-
+    public void display() {
+        System.out.println("Location:" + this.location.getText());
+        System.out.println("Current Time: " + this.localTime.getText());
+        System.out.println("Temperature atm: " + this.currentTemp.getText() + this.tempUnit.getText());
     }
 }
